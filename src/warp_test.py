@@ -17,6 +17,7 @@ class TestWarp(unittest.TestCase):
         self.assert_accepts_end_tempo()
         self.assert_console_accepts_b2s()
         self.assert_console_accepts_s2b()
+        self.assert_expected_s2b_and_b2s_if_only_1_marker()
 
         # validate basic exceptions
         self.assert_warp_filters_invalid_markers_properly()
@@ -89,6 +90,23 @@ class TestWarp(unittest.TestCase):
         self.assertEqual(console(self.test, "end_tempo -10"), None)
         self.assertEqual(end_tempo, self.test.end_tempo)
 
+    def assert_expected_s2b_and_b2s_if_only_1_marker(self):
+        warp_test = Warp()
+        warp_test.set_marker(0,0)
+        warp_test.set_end_tempo(10)
+
+        # after marker
+        self.assertEqual(console(warp_test, "s2b 1"), 10)
+        self.assertEqual(console(warp_test, "b2s 10"), 1)
+
+        # before marker
+        self.assertEqual(console(warp_test, "s2b -1"), -10)
+        self.assertEqual(console(warp_test, "b2s -10"), -1)
+
+        # on marker
+        self.assertEqual(console(warp_test, "s2b 0"), 0)
+        self.assertEqual(console(warp_test, "b2s 0"), 0)
+
     def assert_expected_s2b_inbetween_the_two_markers(self):
         """Checks if the seconds to beats function works properly inbetween two markers"""
         self.assertEqual(console(self.test, "s2b 2.5"), 0.5)
@@ -142,7 +160,7 @@ class TestWarp(unittest.TestCase):
             # Pracitcally, this change should alter the value of the tempo 
             # before all markers, add an internal section for the, and not
             # impact the final section
-            
+
         # check section A
         self.assertEqual(console(self.test, "s2b 2"), 0.25)
         self.assertEqual(console(self.test, "b2s 0.25"), 2)
@@ -170,7 +188,7 @@ class TestWarp(unittest.TestCase):
         import statistics as stats
 
         avg_log = []
-        test_ns = [2**i for i in range(4, 9)]
+        test_ns = [2**i for i in range(4, 10)]
         
         for n in test_ns:
             test_warp = Warp()
@@ -182,14 +200,15 @@ class TestWarp(unittest.TestCase):
             
             repeats = 25
             for _ in range(repeats):
-                execution = timeit.timeit(lambda: [console(test_warp, 'b2s ' + str(n-0.1)), console(test_warp, 's2b ' + str(n//2-0.1))], number=200)
+                execution = timeit.timeit(lambda: [console(test_warp, 'b2s ' + str(n-0.1)), console(test_warp, 's2b ' + str(n//2-0.1))], number=400)
                 avg_exc += execution / repeats
                 execution = timeit.timeit(lambda: [ord(x) for x in "aasdfadgasdfwr22"], number = 1000)
                 avg_exc_ref += execution / repeats
 
             avg_log.append(avg_exc / avg_exc_ref)
-            print("(raw time, for 200 requests, and n = %d) mean: %f, theoretical frequency: %f" % (n, avg_exc, 200/avg_exc))
-        
+            print("(raw time, for 400 requests, and n-markers = %d)"
+                    "mean: %f, theoretical frequency: %f" 
+                    % (n, avg_exc, 2*400/avg_exc))  # 2 * because s2b and b2s in conjunction
         
         avg_log = [math.log2(avg_log[i+1]/avg_log[i]) for i in range(len(avg_log)-1)]
         print("(logarithm) mean: %f, std: %f, adjusted mean: %f" % (stats.mean(avg_log), stats.stdev(avg_log), stats.mean(avg_log) + 2*stats.stdev(avg_log)))

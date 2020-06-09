@@ -85,7 +85,6 @@ class Warp():
     >>> test_warp.set_end_tempo(None)
     >>> test_warp.b2s(2)
     >>> test_warp.s2b(6)
-    >>> test_warp.set_end_tempo(10)  # same as before
     """
 
     def __init__(self):
@@ -94,13 +93,20 @@ class Warp():
         self.regions = []
     
     def __update_regions__(self):
-        """updates the region dictionary with the new edges and tempo"""
-        # step through each available region
+        """
+        Front-loads the s2b and b2s calculations.
+        Specifically, this is done via an O(n) loop
+        calcualtions on the sorted 'markers' list.
+        It finds the necessary values for proper
+        linear interpolation.
+        """
+        
+        # front-load calculations for all regions
         self.regions = []
         for count in range(len(self.markers)-1):
-            left = self.markers[count]
-            right = self.markers[count+1]
-            a, b, c, d = left[0], right[0], left[1], right[1]
+            left = self.markers[count]  # earlier marker
+            right = self.markers[count+1]  # next marker
+            a, b, c, d = left[0], right[0], left[1], right[1]  # the 'edges'
             tempo = self.get_tempo(a, b, c, d)
             self.regions.append((a, c, tempo))
         
@@ -108,43 +114,73 @@ class Warp():
         last_marker = self.markers[-1]
         self.regions.append((last_marker[0], last_marker[1], self.end_tempo))
     
-    def __binomial_search__(self, markers, beat, beat_or_time):
-        """Improves efficiency to log(n) by using binomial_search"""
-        a, b = 0, len(markers)
-        while (b-a) > 1:
-            median = a + (b-a) // 2
-            median_value = markers[median][beat_or_time]
-            if beat < median_value:
-                a, b = a, median
-            elif beat > median_value:
-                a, b = median, b
-            else:
-                a, b = median, median
+    def __binomial_search__(self, input_ref, beat_or_time):
+        """
+        Improves the efficiency of finding the relevant region
+        for a given input; specifically designed for use with
+        the s2b and b2s functionalities.
 
-        if a == b:
-            return markers[median]
+        For purposes of demonstration of understanding (this is
+        for a technical interview), this method only uses two value 
+        that actually change; it also avoids using recursion. This 
+        is done in the interest of maximizing performance. If any other 
+        method (to my knowledge) is used here, either the method is
+        greatly bottlenecked by that (recursion) or it does
+        not scale as expected. The average performance decrease of 
+        calling the s2b function:
+            
+            $
+            \frac{p_{t + 1}}{p_{t}} ~= \frac{n_{t+1}}{n_{t}}^{0.1}.
+            and,
+            p_{t+1} ~= 360 * \frac{n_{t+1}}{n_{t}}^{0.1} [khz]
+            $
+
+        where p_(t+1) is the maximum frequency of calling s2b or b2s
+        at time + 1 (i.e. the next one); similarly, n representts the
+        number of markers in a given system.
+        
+        :param input_ref float: the input reference value to
+                                isolate region w.r.t the regions
+        :param beat_or_time int: either 0 (beat) or 1 (time)
+        :return int: the relevant region of the input
+        """
+        # perform binary search
+        left, right = 0, len(self.markers)  # purposes of optimization
+        while (right-left) > 1:
+            median = left + (right-left) // 2
+            median_value = self.markers[median][beat_or_time]
+            if input_ref < median_value:
+                right = median
+            elif input_ref > median_value:
+                left = median
+            else:
+                left, right = median, median
+
+        # finalize binary search and return
+        if self.markers[left][beat_or_time] == input_ref:
+            return left
         else:
-            index = a      
-            marker = markers[index]
-            if beat < marker[beat_or_time]:
-                if marker[2] == 0:
+            if input_ref < self.markers[left][beat_or_time]:
+                if left == 0:
                     return 0
                 else:
-                    return marker[2]-1
-            elif beat > marker[beat_or_time]:
-                return marker[2]
+                    return left - 1
             else:
-                return marker[2]-1
+                return left
 
     def set_marker(self, beat_marker, seconds_marker):
-        """Set a marker by its intercept with beat and time lines
+        """
+        Set a marker by its intercept with beat and time lines.
+        The processing intensive tasks are front-loaded; i.e. 
+        the process is 
+        
 
         :param beat_marker float: the positive beat to set the marker
         :param seconds_marker float: the positive second to set the marker
         """
         # check validity of the input
         if len(self.markers) > 0:
-            for beat_marker_ref, seconds_marker_ref, _ in self.markers:                  
+            for beat_marker_ref, seconds_marker_ref in self.markers:                  
                 if beat_marker_ref == beat_marker or seconds_marker_ref == seconds_marker:
                     return None
                 
@@ -153,22 +189,18 @@ class Warp():
                 if beat_marker_reference != seconds_marker_reference:
                     return None
 
-        # experimental optimizations
+        # incrementally sort the marker
         if len(self.markers) == 0:
-            self.markers.append([beat_marker, seconds_marker, 0])
+            self.markers.append([beat_marker, seconds_marker])
             return None
         
         insert_index = 0
         for marker in self.markers:
             if beat_marker > marker[0]:
-                insert_index += 1  # auto sort
+                insert_index += 1  # incremental sorting
+        self.markers.insert(insert_index, [beat_marker, seconds_marker])
 
-        self.markers.insert(insert_index, [beat_marker, seconds_marker, None])
-
-        for index, marker in enumerate(self.markers): # use in optimization / binomial
-            marker[2] = index
-            self.markers[index] = marker
-   
+        # front load the region and tempo calculations
         self.__update_regions__()
 
     def get_tempo(self, a, b, c,  d):
@@ -197,19 +229,20 @@ class Warp():
 
         :param end_tempo float: value of the final tempo [beats per second]
         """
-        if end_tempo != None and end_tempo < 0:
+        if end_tempo != None and end_tempo < 0:  # end_tempo can only be positive float
             return None
 
         self.end_tempo = end_tempo
-        if len(self.markers) > 0:
-            self.__update_regions__()
+        if len(self.markers) > 0:  # allows end_tempo to be set before markers
+            self.__update_regions__()  # front loading calculations
 
     def b2s(self, input_beat):
-        """Converts the input beat to its compliment time based on the defined warp object"""
-        region = self.__binomial_search__(self.markers, input_beat, 0)
+        """Converts the input beat to its compliment time based on the defined warp object"""  
+        # get required properties of the input
+        region = self.__binomial_search__(input_beat, 0)
+        compliments = self.regions[region]  
 
-        compliments = self.regions[region]
-        print(compliments)
+        # linear interpolation: got (a, b, slope) in above step
         if compliments[-1] == None:
             return None
         else:
@@ -224,10 +257,11 @@ class Warp():
     
     def s2b(self, input_seconds):
         """Converts the input time to its compliment beat based on the defined warp object"""
-        region = self.__binomial_search__(self.markers, input_seconds, 1)
-        
+        # get requred properties of the input
+        region = self.__binomial_search__(input_seconds, 1)
         compliments = self.regions[region]
-        print(compliments)
+
+        # linear interpolation: got (a, b, slope) in above step
         if compliments[-1] == None:
             return None
         else:
