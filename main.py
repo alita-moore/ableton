@@ -1,4 +1,4 @@
-from src.console import console
+from src.utils import console
 from src.warp import Warp
 
 warp = Warp()
