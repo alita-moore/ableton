@@ -73,5 +73,5 @@ def console(warp, *input_str):
     elif user_input[0] == "show":
         print('Your warp object: ')
         print('end tempo: %a' % warp.end_tempo)
-        print('beat markers: %a' % warp.beat_markers)
-        print('second markers: %a' % warp.second_markers)
+        print('markers: %a' % warp.markers)
+        print('regions: %a' % warp.regions)

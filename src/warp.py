@@ -107,6 +107,34 @@ class Warp():
         # append end region
         last_marker = self.markers[-1]
         self.regions.append((last_marker[0], last_marker[1], self.end_tempo))
+    
+    def __binomial_search__(self, markers, beat, beat_or_time):
+        """Improves efficiency to log(n) by using binomial_search"""
+        a, b = 0, len(markers)
+        while (b-a) > 1:
+            median = a + (b-a) // 2
+            median_value = markers[median][beat_or_time]
+            if beat < median_value:
+                a, b = a, median
+            elif beat > median_value:
+                a, b = median, b
+            else:
+                a, b = median, median
+
+        if a == b:
+            return markers[median]
+        else:
+            index = a      
+            marker = markers[index]
+            if beat < marker[beat_or_time]:
+                if marker[2] == 0:
+                    return 0
+                else:
+                    return marker[2]-1
+            elif beat > marker[beat_or_time]:
+                return marker[2]
+            else:
+                return marker[2]-1
 
     def set_marker(self, beat_marker, seconds_marker):
         """Set a marker by its intercept with beat and time lines
@@ -176,35 +204,12 @@ class Warp():
         if len(self.markers) > 0:
             self.__update_regions__()
 
-    def __binomial_search__(self, markers, beat, beat_or_time):
-        """Improves efficiency to log(n) by using binomial_search"""
-        while len(markers) > 1:
-            median = len(markers) // 2
-            median_value = markers[median][beat_or_time]
-            if beat < median_value:
-                markers = markers[0:median]
-            elif beat > median_value:
-                markers = markers[median:]
-            else:
-                markers = [markers[median]]
-        
-        if len(markers) == 1:
-            markers = markers[0]
-            if beat < markers[beat_or_time]:
-                if markers[2] == 0:
-                    return 0
-                else:
-                    return markers[2]-1
-            elif beat > markers[beat_or_time]:
-                return markers[2]
-            else:
-                return markers[2]-1
-
     def b2s(self, input_beat):
         """Converts the input beat to its compliment time based on the defined warp object"""
         region = self.__binomial_search__(self.markers, input_beat, 0)
 
         compliments = self.regions[region]
+        print(compliments)
         if compliments[-1] == None:
             return None
         else:
@@ -222,6 +227,7 @@ class Warp():
         region = self.__binomial_search__(self.markers, input_seconds, 1)
         
         compliments = self.regions[region]
+        print(compliments)
         if compliments[-1] == None:
             return None
         else:
