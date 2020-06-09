@@ -142,7 +142,7 @@ class TestWarp(unittest.TestCase):
             # Pracitcally, this change should alter the value of the tempo 
             # before all markers, add an internal section for the, and not
             # impact the final section
-
+            
         # check section A
         self.assertEqual(console(self.test, "s2b 2"), 0.25)
         self.assertEqual(console(self.test, "b2s 0.25"), 2)
