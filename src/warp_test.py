@@ -5,10 +5,9 @@ from warp import Warp
 class TestWarp(unittest.TestCase):
     """
     A test that validates basic functionality,
-    excpetion handlin, main s2b and b2s funcitons,
+    exception handling, main s2b and b2s functions,
     and performance.
     """
-
     def runTest(self):
         self.test = Warp()
 
@@ -91,6 +90,10 @@ class TestWarp(unittest.TestCase):
         self.assertEqual(end_tempo, self.test.end_tempo)
 
     def assert_expected_s2b_and_b2s_if_only_1_marker(self):
+        """
+        Verifies that the program functions as expected
+        if only one marker exists
+        """
         warp_test = Warp()
         warp_test.set_marker(0,0)
         warp_test.set_end_tempo(10)
@@ -182,14 +185,23 @@ class TestWarp(unittest.TestCase):
         self.assertEqual(console(self.test, "s2b 4"), 0.5)
     
     def check_if_solution_is_optimal(self):
-        """Verifies that the main pull-function has complexity O(log(n)) or better"""
+        """
+        Verifies that the optimal solutions is employed with
+        complexity O(log(n)). The whole function must run at
+        no less than 1000 standard units; A standard unit is
+        defined as the time it takes for a general sorting function
+        to sort 1,000 times; which, is only possible if the ideal 
+        O(log(n)) solution is used in all steps.
+        """
         import timeit
         import math
         import statistics as stats
+        import time
 
         avg_log = []
-        test_ns = [2**i for i in range(4, 10)]
+        test_ns = [2**i for i in range(4, 12)]
         
+        start = time.time()
         for n in test_ns:
             test_warp = Warp()
             avg_exc = 0
@@ -207,9 +219,13 @@ class TestWarp(unittest.TestCase):
 
             avg_log.append(avg_exc / avg_exc_ref)
             print("(raw time, for 400 requests, and n-markers = %d)"
-                    "mean: %f, theoretical frequency: %f" 
+                    " mean: %f, theoretical frequency: %f" 
                     % (n, avg_exc, 2*400/avg_exc))  # 2 * because s2b and b2s in conjunction
-        
+        time_elapsed = time.time() - start
+        exc_ref = sum(timeit.repeat(lambda: [ord(x) for x in "aasdfadgasdfwr22"], repeat = 25, number = 1000))/25
+        time_elapsed_normalized = time_elapsed / exc_ref
+        self.assertTrue(time_elapsed < 1000)
+
         avg_log = [math.log2(avg_log[i+1]/avg_log[i]) for i in range(len(avg_log)-1)]
         print("(logarithm) mean: %f, std: %f, adjusted mean: %f" % (stats.mean(avg_log), stats.stdev(avg_log), stats.mean(avg_log) + 2*stats.stdev(avg_log)))
         self.assertTrue(stats.mean(avg_log) < 0.15)  # O(log(n))

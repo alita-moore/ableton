@@ -1,16 +1,17 @@
 class Warp():
     """
     # Description
-    The Warp class organizes this program's priamry functionality. 
+    The Warp class organizes this program's primary functionality. 
     Specifically, this is defined as the ability to automatically
     adjust tempo (beats / s) as a function of markers. A marker
     is defined as given beat and its complimentary seconds marker.
     Notably, the warp class is a dynamic system, and it will 
     accurately convey the complimentary beats and time depending 
     on the known markers at that moment. These dynamic methods (b2s 
-    and s2b) run in time complexity O(log(n)) where n is the number 
-    of markers; details about optimization can be found in the 
-    README.
+    and s2b) run in time complexity O(nlog(n)) to establish all markers,
+    and then O(log(n)) to index the solutions to s2b and b2s where
+    n is the number of markers; details about optimization can be 
+    found in the README.
 
     # Usage
     Set two markers at 
@@ -70,6 +71,7 @@ class Warp():
     1
 
     **After the last marker**
+
     the tempo in the region after the last marker is defined
     as the end_tempo, the end_tempo is assumed to be defined
     but if it's not then nothing is outputted
@@ -98,11 +100,11 @@ class Warp():
         not scale as expected. The average performance decrease of 
         calling the s2b function:
             
-            $
+            $$
             \frac{p_{t + 1}}{p_{t}} ~= \frac{n_{t+1}}{n_{t}}^{0.1}.
             and,
             p_{t+1} ~= 360 * \frac{n_{t+1}}{n_{t}}^{0.1} [khz]
-            $
+            $$
 
         where p_(t+1) is the maximum frequency of calling s2b or b2s
         at time + 1 (i.e. the next one); similarly, n representts the
@@ -137,7 +139,7 @@ class Warp():
             else:
                 return left
 
-    def __get_tempo__(self, a, b, c,  d):
+    def __get_tempo__(self, left, right):
         r"""Get the tempo provided the edge points a, b, c, d
 
         beat line   ------*(a)-----*(point of interest)----------*(b)-------
@@ -151,6 +153,8 @@ class Warp():
         :param d float: seconds intercept right of the point of interest
         :return float: tempo [beats per second]
         """
+        a, c = left
+        b, d = right
         return (b-a)/(d-c)
 
     def __get_insert_index__(self, beat_marker, seconds_marker):
@@ -165,11 +169,11 @@ class Warp():
         insert_index_samp = self.__binary_search__(seconds_marker, 1)
 
         # filter invalid inputs
-        if insert_index_beat != insert_index_samp:  # if intersection
+        if insert_index_beat != insert_index_samp:  # interesection
             return None
-        elif self.markers[insert_index_beat][0] == beat_marker:
+        elif self.markers[insert_index_beat][0] == beat_marker: # on point
             return None
-        elif self.markers[insert_index_samp][1] == seconds_marker:
+        elif self.markers[insert_index_samp][1] == seconds_marker: # on point
             return None
         
         # adjust the index so it's inserted properly
@@ -179,37 +183,57 @@ class Warp():
         
         return insert_index
     
-    def __update_regions__(self, insert_index, left, right):
+    def __update_regions__(self, insert_index):
         """
         Front-loads the s2b and b2s calculations.
-        Specifically, this is done via an O(n) loop
+        Specifically, this is done via an O(log(n)) loop
         calcualtions on the sorted 'markers' list.
         It finds the necessary values for proper
         linear interpolation.
 
         note that in practice this will have complexity
-        O(n**2) because it's called at each step.
+        O(nlog(n))
         """
-        # front-load calculations for all regions
-        # self.regions = []
-        # for count in range(len(self.markers)-1):
-        #     left = self.markers[count]  # earlier marker
-        #     right = self.markers[count + 1]  # next marker
-        #     a, b, c, d = left[0], right[0], left[1], right[1]  # the 'edges'
-        #     tempo = self.__get_tempo__(a, b, c, d)
-        #     self.regions.append((a, c, tempo))
-
-
+        # this updates the regions affected by a new marker;
+        # if a marker has not been added then the insert_index
+        # is None, and only the end_tempo is updated.
         if insert_index != None:
-            if insert_index == len(self.markers):  # i.e. change made to end
-                left = self.makers[-2]
-                right = self.markers[-1]
-                tempo = self.__get_tempo__(left[0], right[0], left[1], right[1])
-                self.regions.append((left[0], left[1], tempo))
-        
-        # append end region
-        last_marker = self.markers[-1]
-        self.regions[-1] = (last_marker[0], last_marker[1], self.end_tempo)
+            left_index = insert_index - 1  # there are a maximum of three effective markers (2 regions)
+            middle_index = insert_index
+            right_index = insert_index + 1
+
+            # calculate the updated tempos
+            new_regions = [None, None, None]
+            for step, index in enumerate([left_index, middle_index, right_index]):
+                # if the marker is added at the beginning, left < 0; if at the end, 
+                # right > len(self.markers); remember that self.markers has been updated 
+                # but self.regions has not.
+                condition = index >= 0 and index < len(self.markers)
+                # print("step: %d, index: %d, len(self.regions): %d condition: %a, new_regions: %a"
+                #       % (step, index, len(self.markers), condition, new_regions))
+                if condition:  # valid index
+                    if index == len(self.markers)-1:  # at the end of the up to date markers list
+                        a, c = self.markers[index]  # last marker
+                        tempo = self.end_tempo
+                        new_regions[step] = [a, c, tempo]
+                    elif index == right_index:
+                        a, c, tempo = self.regions[index - 1]  # right tempo never changes
+                        new_regions[step] = [a, c, tempo]
+                    else:
+                        left = self.markers[index]
+                        right = self.markers[index + 1]
+                        tempo = self.__get_tempo__(left, right)
+                        a, c = left
+                        new_regions[step] = [a, c, tempo]
+            
+            # update the regions
+            self.regions.insert(insert_index, new_regions[1])  # so that cycling works
+            for step, region in enumerate(new_regions):
+                if region != None:
+                    index = insert_index - 1
+                    self.regions[index + step] = region
+        else:
+            self.regions[-1][2] = self.end_tempo
         
     def set_marker(self, beat_marker, seconds_marker):
         """
@@ -220,6 +244,8 @@ class Warp():
         """
         if len(self.markers) == 0:
             self.markers.append([beat_marker, seconds_marker])
+            self.regions.append([beat_marker, seconds_marker, None])
+            self.__update_regions__(None)
             return None
         
         insert_index = self.__get_insert_index__(beat_marker, seconds_marker)
@@ -228,8 +254,8 @@ class Warp():
         else:
             self.markers.insert(insert_index, [beat_marker, seconds_marker])
 
-        # front load the region and tempo calculations
-        self.__update_regions__()
+        # Update the regions
+        self.__update_regions__(insert_index)
 
     def set_end_tempo(self, end_tempo):
         r"""
@@ -247,7 +273,7 @@ class Warp():
 
         self.end_tempo = end_tempo
         if len(self.markers) > 0:  # allows end_tempo to be set before markers
-            self.__update_regions__()  # front loading calculations
+            self.__update_regions__(None)  # front loading calculations
 
     def b2s(self, input_beat):
         """
