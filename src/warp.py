@@ -24,8 +24,7 @@ class Warp():
     Lets make sure these were set properly
     >>> test_warp.markers
     [(0, 0), (1, 5)]
-    # A sorted list (the beat and sample times of a marker are
-    # always at the same index of sorted list)
+    # This list is automatically sorted
 
     If an invalid marker was provided, nothing happens
     >>> test_warp.set_marker(0,4)  # beat = 0 is already set
@@ -50,27 +49,30 @@ class Warp():
     >>> test_warp.s2b(6.0)
     11.0
 
-    There are a few edge cases to consider
-    # BEFORE
-    # the beat or sample time given is before the first marker, therefore
-    # the tempo of this 'before' region is the same as the tempo after
-    # the first marker
+    There are a few edge cases to consider..
+    
+    **Before**
+
+    the beat or sample time given is before the first marker, therefore
+    the tempo of this 'before' region is the same as the tempo after
+    the first marker
     >>> test_warp.b2s(-0.5)
     -2.5
     >>> test_warp.s2b(-2.5)
     -0.5
 
-    # ON A POINT
-    # if an input is on a marker, its output is pre-defined
+    **On a point**
+
+    if an input is on a marker, its output is pre-defined
     >>> test_warp.b2s(1)
     5
     >>> test_warp.s2b(5)
     1
 
-    # AFTER LAST MARKERS
-    # the tempo in the region after the last marker is defined
-    # as the end_tempo, the end_tempo is assumed to be defined
-    # but if it's not then nothing is outputted
+    **After the last marker**
+    the tempo in the region after the last marker is defined
+    as the end_tempo, the end_tempo is assumed to be defined
+    but if it's not then nothing is outputted
     >>> test_warp.set_end_tempo(None)
     >>> test_warp.b2s(2)
     >>> test_warp.s2b(6)
@@ -80,30 +82,6 @@ class Warp():
         self.end_tempo = None
         self.markers = []
         self.regions = []
-    
-    def __update_regions__(self):
-        """
-        Front-loads the s2b and b2s calculations.
-        Specifically, this is done via an O(n) loop
-        calcualtions on the sorted 'markers' list.
-        It finds the necessary values for proper
-        linear interpolation.
-
-        note that in practice this will have complexity
-        O(n**2) because it's called at each step.
-        """
-        # front-load calculations for all regions
-        self.regions = []
-        for count in range(len(self.markers)-1):
-            left = self.markers[count]  # earlier marker
-            right = self.markers[count + 1]  # next marker
-            a, b, c, d = left[0], right[0], left[1], right[1]  # the 'edges'
-            tempo = self.__get_tempo__(a, b, c, d)
-            self.regions.append((a, c, tempo))
-        
-        # append end region
-        last_marker = self.markers[-1]
-        self.regions.append((last_marker[0], last_marker[1], self.end_tempo))
     
     def __binary_search__(self, input_ref, beat_or_time):
         """
@@ -175,20 +153,14 @@ class Warp():
         """
         return (b-a)/(d-c)
 
-    def set_marker(self, beat_marker, seconds_marker):
+    def __get_insert_index__(self, beat_marker, seconds_marker):
         """
-        Set a marker by its intercept with beat and time lines.
-        The processing intensive tasks are front-loaded; i.e. 
-        the process is 
-        
-
-        :param beat_marker float: the positive beat to set the marker
-        :param seconds_marker float: the positive second to set the marker
+        This method is meant to be an inbetween so that the 
+        __binaray_search__ method can be used when setting the
+        marker and also when updating the regions. In effect,
+        this optimization makes adding markers and updating
+        the regions have a complexity of O(nlog(n))
         """
-        if len(self.markers) == 0:
-            self.markers.append([beat_marker, seconds_marker])
-            return None
-        
         insert_index_beat = self.__binary_search__(beat_marker, 0)
         insert_index_samp = self.__binary_search__(seconds_marker, 1)
 
@@ -200,14 +172,62 @@ class Warp():
         elif self.markers[insert_index_samp][1] == seconds_marker:
             return None
         
+        # adjust the index so it's inserted properly
         insert_index = insert_index_beat  # either one works
         if self.markers[insert_index][0] < beat_marker:
             insert_index += 1
-        print(insert_index)
-            
         
-        self.markers.insert(insert_index, [beat_marker, seconds_marker])
+        return insert_index
+    
+    def __update_regions__(self, insert_index, left, right):
+        """
+        Front-loads the s2b and b2s calculations.
+        Specifically, this is done via an O(n) loop
+        calcualtions on the sorted 'markers' list.
+        It finds the necessary values for proper
+        linear interpolation.
+
+        note that in practice this will have complexity
+        O(n**2) because it's called at each step.
+        """
+        # front-load calculations for all regions
+        # self.regions = []
+        # for count in range(len(self.markers)-1):
+        #     left = self.markers[count]  # earlier marker
+        #     right = self.markers[count + 1]  # next marker
+        #     a, b, c, d = left[0], right[0], left[1], right[1]  # the 'edges'
+        #     tempo = self.__get_tempo__(a, b, c, d)
+        #     self.regions.append((a, c, tempo))
+
+
+        if insert_index != None:
+            if insert_index == len(self.markers):  # i.e. change made to end
+                left = self.makers[-2]
+                right = self.markers[-1]
+                tempo = self.__get_tempo__(left[0], right[0], left[1], right[1])
+                self.regions.append((left[0], left[1], tempo))
         
+        # append end region
+        last_marker = self.markers[-1]
+        self.regions[-1] = (last_marker[0], last_marker[1], self.end_tempo)
+        
+    def set_marker(self, beat_marker, seconds_marker):
+        """
+        Set a marker by its intercept with beat and time lines.
+                
+        :param beat_marker float: the positive beat to set the marker
+        :param seconds_marker float: the positive second to set the marker
+        """
+        if len(self.markers) == 0:
+            self.markers.append([beat_marker, seconds_marker])
+            return None
+        
+        insert_index = self.__get_insert_index__(beat_marker, seconds_marker)
+        if insert_index == None:
+            return None
+        else:
+            self.markers.insert(insert_index, [beat_marker, seconds_marker])
+
         # front load the region and tempo calculations
         self.__update_regions__()
 
