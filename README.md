@@ -1,5 +1,7 @@
 # 1. Introduction
 __Best viewing experience in visual studio code markdown preview, an html is also included__
+
+Also, this was only made public once the code was finished and submitted.
 ## 1.1. Purpose
 As a technical interview, I was instructed to develop a solution to the following (paraphrased) problem:
 
