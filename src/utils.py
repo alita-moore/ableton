@@ -47,7 +47,7 @@ def console(warp, *input_str):
     if len(input_str) != 0:
         user_input = input_str[0]
     else:
-        user_input = input(">>> ")
+        user_input = input("")
     
     user_input = user_input.split(' ')
 

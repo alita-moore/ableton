@@ -1,8 +1,8 @@
 from src.utils import console
 from src.warp import Warp
 
-warp = Warp()
+sample = Warp()
 while True:
-    output = console(warp)
+    output = console(sample)
     if output != None:
         print(output)

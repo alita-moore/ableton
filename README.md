@@ -1,14 +1,42 @@
 # 1. Introduction
 ## 1.1. Purpose
-As a technical interview, I was instructed to develop a solution to the following (abreviated) problem:
+As a technical interview, I was instructed to develop a solution to the following (paraphrased) problem:
 
+>
+
+> In Live, audio samples can be stretched and squeezed to change their timing. This is known as warping. Pins called warp markers lock a specific point in the sample (in sample time) to a specific place in a measure (in beat time).  
+> 
+> Write a program that, given a set of warp markers, can map time values between the two value spaces: beat time and sample time.
+> 
+> Assume the following behavior,  
+> 
+>    1)  An Audio sample always has at least one marker
+> 2) betwen two warp markers, the tempo is constant
+> 3) the tempo before the first warp marker is the same as the tempo after the first warp marker
+> 4) the tempo after the last warp marker is specified seperately in the input
+> 5) beat time is measure in beats, sample tiemis measured in seconds, and the tempo is measured in beats per second
+
+In addition to the above problem statement, it's expected that all inputs to the program be via the stdin; similarly, all outputs should be via stdout. This should be such that the following is shown in bash.
+
+```Bash
+# inputs
+marker 0.0 0.0  
+marker 1.0 5.0  
+end_tempo 10.0  
+b2s 0.5         
+s2b 6           
+
+# outputs
+2.5             
+11.0            
+```
 
 ## 1.2. Requirements
 This module was designed for use with python 3
 
 # 2. Usage
 ## 2.1. Main Function
-Change the command console's directory to this directory
+Change the bash directory to this directory
 
 ```Bash
 $ cd <this directory>
@@ -19,9 +47,18 @@ Call the [Main.py](main.py) function
 $ python main.py
 ```
 
-Once called, you will get a python-esk console to interact with the 'Warp' object directly
+Once called, all inputs are via stdin and outputs via stdout. Commands directly manipulate the [Warp instance](src/warp.py) of your call; e.g. by just copy and pasting the commands into stdin, the following output is given.
 ```Bash
->>> 
+# input
+marker 0.0 0.0  
+marker 1.0 5.0  
+end_tempo 10.0  
+b2s 0.5         
+s2b 6           
+
+# output
+2.5             
+11.0            
 ```
 
 The following commands are supported and further explained in the documentation of the [console](src/utils.py)
@@ -42,13 +79,22 @@ $ cd src
 $ python warp_test.py
 ```
 
-# 3. Summary of Skills Demonstrated
-Here, I demonstrate my knowledge in object oriented and functional programming, comprehensive documentation, unit test designs, optimizations / algorithms, and readable code. To explain a bit on where each of these are demonstrated...
+# 3. Verbose Explanation of Code (To Make 'Grading' Easier)
+What do I consider quality production-level code? Well, to be concise, code is quality if it answers these questions with a definitive 'yes'.
 
-## 3.1. Object Oriented and Functional Programming
-The [Main](main.py) function employees the two main parts of the warp module; i.e. the functionalities are the Warp function are contained in the Warp class, and the interaction with that class is through the console function. This allows for the easy to understand flow of the [Main](main.py) loop, and it also will help theoretical future programmers to debug the code because each change is isolated to its specific functionality.
+1) Does it accomplish the assigned goal / task?
+2) Could you (a developer) confidently make edits to or use this code?
 
-To demonstrate the cleanliness of the functional programming in this project, here is the entirety of the Main function.
+A bit more verbosely, this section explains what I believe to be the 5 fundamental characteristics of quality code and how I accomplished them in this project 
+
+3.1) Object Oriented and Functional Programming  
+3.2) Comprehensive Documentation  
+3.3) Unit Test Design  
+3.4) Effective Optimizations and use of CS Algorithms  
+3.5) Readible Code
+
+## 3.1. Object Oriented and Functional Programming (OOFP)
+The [Main](main.py) script employees OOFP. [Main's](main.py) simplicity allows theoretical future developers to easily debug and edit my code. To demonstrate, here's the entirety of [Main](main.py):
 
 ```Python
 from src.utils import console
@@ -61,40 +107,45 @@ while True:
         print(output)
 ```
 
-This hierarchical based methodology was emphasized for two reasons...
+OOFP (in the scope of this project) offers two main advantages: readibility and scalability / modularity.
 
-### 3.1.1. for one it was done for __readibility__.
- the concise format of [Main](main.py) allows any outside developer that is trying to understand my code a high level understanding of functionalitality. If you skim over the above code, think to yourself (in pseudocode) what's happening. For me, I'd think 
+### 3.1.1. __readibility__
+ The concise format of [Main](main.py) allows an outside developer to quickly understand its high level functionalitality. As an exercise, skim over the above code, and write out what the code is doing (in pseudocode) For me, I'd say 
 
     1) the warp object is initialized
     2) the console prompts the user for an input
-    3) the console does something to the warp object
+    3) the console does something to the warp object with that input
     4) if the output from the console is not None then it prints that output
-    5) back to 2 and repeat
+    5) back to 2 and repeat indefinitely
 
-At a high level, this is exactly correct. At each decreasing level the complexity increases, but the functionality and purpose also narrows. This allows for easy to read code because it flows as a piece of the greater whole. This is an intuitive behavior, and therefore easy to read. The documentation follows a similar pattern, or at least that was my goal :);
+In the context of the problem statement, this parallels its high-level purpose. If the code did not parallel the problem statement, then it would be clear that something wrong. In addition to high-level readability, Other methods of explanation are allowed by OOFP; which, are discussed in section 3.5.
 
-### 3.1.2. second, it was done for __scalability__.
+### 3.1.2. __Scalability / Modularity__
+This method was designed with Ableton's software in mind. I have worked with music software sparingly in the past, and I know that they often come with a host of modules. As I see it, the main value proposition of music software is the quality and quantity of these modules. e.g. If an artist wants to interface their tap-deck with the software, is there an efficient and easy to use controller? 
 
+In the case of the warp object, I believe it would be used in a situation where someone wants to build a unique sound. The scalability, therefore, is in this method's simple problem statement and solution. it would be easy to run the warp module in parallel with other modules. Arguably more powerfully, though, you can run it in parallel with itself (playing multiple instruments at one time, for example).
+
+Finally, due to its simple methods of interfacing, it can be used in an emergent way and developed into something significantly more complex.
 
 ## 3.2. Comprehensive Documentation
-See the documentation of [console](src/utils.py) or the [warp object](src/warp.py) to see the extensive explanation of usages, dependency, and optimizations. This extensive documentation is present so that future theoretical developers will have an easier time to make changes without breaking things. This documentation is also produced with an online demonstration in mind: because of the example code.
+The documentation of the [console function](src/utils.py) and [warp class](src/warp.py) have extensive explanations in terms of usage, theory, and optimization. This is done to simplify editing and for use in the scope of a larger documentation API.
 
-For example, here's the documentation for the ```__binomial_search__``` [Warp object](src/warp.py) method:
+For example, here's the documentation for the ```__binary_search__``` [Warp object](src/warp.py) method:
 ```Python
-    def __binomial_search__(self, input_ref, beat_or_time):
+    def __binary_search__(self, input_ref, beat_or_time):
         """
-        ## explanation
+        # Purpose
         Improves the efficiency of finding the relevant region
         for a given input; specifically designed for use with
         the s2b and b2s functionalities.
 
-        For purposes of demonstration of understanding (this is
+        # Theory
+        For the purpose of demonstration of understanding (this is
         for a technical interview), this method only uses two ints 
         that actually change; it also avoids using recursion. This 
         is done in the interest of maximizing performance. If any other 
         method (to my knowledge) is used here, either the method is
-        greatly bottlenecked by that (recursion) or it does
+        greatly bottlenecked by it (recursion) or the method does
         not scale as expected. The average performance decrease of 
         calling the s2b function:
         """ ...
@@ -113,29 +164,35 @@ $$
 ``` Python
         ... """
         where p_(t+1) is the maximum frequency of calling s2b or b2s
-        at time + 1, and n represents the number of markers in a given 
+        at the step (t + 1), and n represents the number of markers in a given 
         system.
         
         ## parameters
         :param input_ref float: the input reference value to
-                                isolate region w.r.t the regions
+                                isolate region w.r.t all regions
         :param beat_or_time int: either 0 (beat) or 1 (time)
         :return int: the relevant region of the input
         """
 ```
 
-## 3.3. Unit Test Designs
-See the definition of the [tests](src/warp_test.py) to see the specifics of which functionalities, exceptions, and performance are tested. But as a summary, the tests were developed alongside the code, and therefore they properly include any and all potential bugs that were reasonably encountered. Comprehensive tests are important because a program is only as good as its bugs, so a comprehensive list of bugs aids future development.
+## 3.3. Unit Test Design
+See the definition of the [tests](src/warp_test.py) to see the specifics of which functionalities, exceptions, and performances are tested. To summarize, the tests were developed alongside the code; they properly include any bugs that were encountered during development. Comprehensive tests are important because they allow further development, while also making sure that old bug fixes and functionality are reliably maintained.
 
-## 3.4. Optimizations / Algorithms
-The [warp object](src/warp.py) is built with performance in mind. The main functionality is that of conversion between beat and time (beat -> seconds, seconds -> beat). This call-back is optimized by front-loading calculations: progressively sorted list of markers and updating dynamic tempos as markers as set. Because the markers are inherently sorted, binary search is employeed; specifically, it's used to find which 'region' a given input is.
+## 3.4. Effective Optimizations and use of CS Algorithms
+The goal of all engineers should be to engineer an optimal solution; i.e. don't over-engineer. When I was developing this module, I only spent time optimizing the s2b and b2s. I didn't worry about anything else, because it was outside of the assumed use case.
+
+The presumed use case for the warp module is in frequency modulation; digital sound is a series of signal frequencies -- converted into real audio via speakers. According to Google, the average bit rate is about 44.1khz; which, if the warp module were used in real-time, would require the s2b functionality to be able to run at a frequency of at least 44.1khz.
+
+As outlined in section 3.2, front-loading computation and binary search were used. Which, in an ideal world (without bottlenecks), would require there to be 1.34 E9 markers. Notably, this is not the true limit because establishing the markers is O(n^2), but it demonstrates how the [warp class](src/warp.py) achieves its practical playback goal.
 
 ## 3.5. Readable Code
-All the functions and variables are written with readability in mind. For example, from the [warp object](src/warp.py),
+All of the functions and variables are named with readability in mind. For example, from the [warp object](src/warp.py),
 
 ```python
 def __update_regions__(self):
-        """updates the region dictionary with the new edges and tempo"""
+        """
+        **ignoring docstring**
+        """
         # step through each available region
         self.regions = []
         for count in range(len(self.markers)-1):
@@ -159,3 +216,51 @@ This similarly can be read as
         save the required values in the regions variable
 
     now do the same for the end region
+
+In addition to high-level readability, I attempt to maintain a constant learning curve for each set of code. I do this by implementing a complementary hierarchical structure of complexity and focus...
+
+That is, see the 'levels' of [Main](main.py) -> [console](src/utils.py) -> [Warp](src/warp.py) -- where [Main](main.py) is high-level, and [Warp](src/warp.py) is low-level. The complexity of the code / documentation increases as the level decreases. However, the scope narrows in a complementary way. This creates a hierarchy of sorts; with each step, the actual problem becomes easier to understand, but the solution less so. A proper balance of these two properties of readability allows for a (ideally) constant learning curve for each subsequent step.
+
+To demonstrate this kind of hierarchical complexity in action, let's take a look at the [warp object's](src/warp.py) class method ```__get_tempo__```:
+```Python
+ def __get_tempo__(self, a, b, c,  d):
+        r"""Get the tempo provided the edge points a, b, c, d
+
+        beat line   ------*(a)-----*(point of interest)----------*(b)-------
+                            |       region of interest             \ 
+                            | tempo = (b-a)/(d-c) [beats / second]  \ 
+        seconds line------*(c)---------------------------------------*(d)--- 
+
+        :param a float: beat intercept left of the point of interest
+        :param b float: beat intercept right of the point of interest
+        :param c float: seconds intercept left of the point of interest
+        :param d float: seconds intercept right of the point of interest
+        :return float: tempo [beats per second]
+        """
+        return (b-a)/(d-c)
+```
+You're probably thinking to yourself,   
+
+> Well, Alita; this seems like a waste of valuable memory. It's just doing a simple algebraic expression! Which, could very easily have just been done inline.
+
+```__get_tempo__``` was obfuscated because the solution is non-obvious. Understanding the solution would require that you'd realize the purposes of a, b, c, and d; and that you know what 'tempo' means in this context. A reader might say, 
+
+> well what does this tempo define? As in the tempo of the whole piece? Or just any part of the piece?
+
+The docstring shows how the tempo is the beats per second of a region defined by its left and right markers. i.e. delta beats divided by delta time [beats per second]. Devoid of context, however, this simple equation is confusing. So I split it off from the main function and explained it clearly. Programming things so neurotically might seem like I'm saying,
+
+> You are incapable of understanding basic algebra
+
+ But in reality, it's so that others can double-check my work. e.g. let's say that I had made the relatively simple error of ```return (d-c) / (b-a)```, instead. My coworker would probably notice that the calculated tempo is the inverse of what it should be and then just make a simple fix in its obvious place which is ```__get_tempo__```.
+ 
+ However, if it were placed inline, my coworker would first have to find where tempo is being defined (which might be in mulitple places), what and why it's being calculated, and then make a fix. They may even assume the code is just fundamentally flawed and instead opt to start from scratch; which, wastes time and money just because the equation was inverted.
+
+<!-- # 4. How I Approach a Problem
+
+This section simply outlines my method of programming, and I hope it offers some insight into how I approach problems in general.
+
+1) Solve a simplified version of the problem on paper
+2) Code that solution in a dirty way (but with good practice techniques)
+3) Analyze the dirty code and define an organization structure to maximize readibility
+4) Re-organize the dirty solution with proper documentation
+5) Analyze where optimizations are needed to establish subproblems -- repeat from 1. -->
