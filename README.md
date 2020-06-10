@@ -150,12 +150,14 @@ For example, here's the documentation for the ```__binary_search__``` [Warp obje
 ```
 
 $$
-\begin{aligned}
-\frac{p_{t + 1}}{p_{t}} &~= \left(\frac{n_{t+1}}{n_{t}}\right)^{0.1}\\
-&\text{and}\\
-p_{t+1} &~= 360 \left(\frac{n_{t+1}}{n_{t}}\right)^{0.1} [khz]\\
-\text{Note: the exact} & \text{  frequency is device specific}
-\end{aligned}
+\begin{equation}
+    \begin{aligned}
+        \frac{p_{t + 1}}{p_{t}} &~= \left(\frac{n_{t+1}}{n_{t}}\right)^{0.1}\\
+        &\text{and}\\
+        p_{t+1} &~= 360 \left(\frac{n_{t+1}}{n_{t}}\right)^{0.1} [khz]\\
+        \text{Note: the exact} & \text{  frequency is device specific}
+    \end{aligned}
+\end{equation}
 $$
 
 
