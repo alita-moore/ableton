@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>1. Introduction</title>
+        <style>
+</style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.10.2/dist/katex.min.css" integrity="sha384-yFRtMMDnQtDRO8rLpMIKrtPCD5jdktao2TV19YiZYWMDkUR5GQZR/NOVTdquEx1j" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        <link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        <script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="1-introduction">1. Introduction</h1>
+<p><strong>Best viewing experience in visual studio code markdown preview, an html is also included</strong></p>
+<h2 id="11-purpose">1.1. Purpose</h2>
+<p>As a technical interview, I was instructed to develop a solution to the following (paraphrased) problem:</p>
+<blockquote></blockquote>
+<blockquote>
+<p>In Live, audio samples can be stretched and squeezed to change their timing. This is known as warping. Pins called warp markers lock a specific point in the sample (in sample time) to a specific place in a measure (in beat time).</p>
+<p>Write a program that, given a set of warp markers, can map time values between the two value spaces: beat time and sample time.</p>
+<p>Assume the following behavior,</p>
+<ol>
+<li>An Audio sample always has at least one marker</li>
+<li>betwen two warp markers, the tempo is constant</li>
+<li>the tempo before the first warp marker is the same as the tempo after the first warp marker</li>
+<li>the tempo after the last warp marker is specified seperately in the input</li>
+<li>beat time is measure in beats, sample time is measured in seconds, and the tempo is measured in beats per second</li>
+</ol>
+</blockquote>
+<p>In addition to the above problem statement, it's expected that all inputs to the program be via the stdin; similarly, all outputs should be via stdout. This should be such that the following is shown in bash.</p>
+<pre><code class="language-Bash"><div><span class="hljs-comment"># inputs</span>
+marker 0.0 0.0  
+marker 1.0 5.0  
+end_tempo 10.0  
+b2s 0.5         
+s2b 6           
+
+<span class="hljs-comment"># outputs</span>
+2.5             
+11.0            
+</div></code></pre>
+<h2 id="12-requirements">1.2. Requirements</h2>
+<p>This module was designed for use with python 3; this README is meant to be viewed in markdown; there's an html copy for simplicity.</p>
+<h1 id="2-usage">2. Usage</h1>
+<h2 id="21-main-function">2.1. Main Function</h2>
+<p>Change the bash directory to this directory</p>
+<pre><code class="language-Bash"><div>$ <span class="hljs-built_in">cd</span> &lt;this directory&gt;
+</div></code></pre>
+<p>Call the <a href="main.py">Main.py</a> function</p>
+<pre><code class="language-Bash"><div>$ python main.py
+</div></code></pre>
+<p>Once called, all inputs are via stdin and outputs via stdout. Commands directly manipulate the <a href="src/warp.py">Warp instance</a> of your call; e.g. by just copy and pasting the commands into stdin, the following output is given.</p>
+<pre><code class="language-Bash"><div><span class="hljs-comment"># input</span>
+marker 0.0 0.0  
+marker 1.0 5.0  
+end_tempo 10.0  
+b2s 0.5         
+s2b 6           
+
+<span class="hljs-comment"># output</span>
+2.5             
+11.0            
+</div></code></pre>
+<p>The following commands are supported and further explained in the documentation of the <a href="src/utils.py">console</a></p>
+<pre><code class="language-Bash"><div>&gt;&gt;&gt; marker a b   <span class="hljs-comment"># a and b are floats, a is the beat, b is the seconds on the time-line</span>
+&gt;&gt;&gt; end_tempo c  <span class="hljs-comment"># c is a float greater than 0, and is the tempo after all markers</span>
+&gt;&gt;&gt; s2b d        <span class="hljs-comment"># d is a float, this function prints the beat at which d (sec.) occurs</span>
+&gt;&gt;&gt; b2s e        <span class="hljs-comment"># e is a float, this function prints the time (sec.) which beat e occurs</span>
+</div></code></pre>
+<p>If an input is invalid then there will be no output and no change to the Warp object. More details about the handling of exceptions, design, and optimizations can be found in the documentation of the <a href="src/warp.py">Warp object</a>.</p>
+<h2 id="22-testing">2.2. Testing</h2>
+<p>Tests were defined throughout the development of this module. They verify the baseline functionality of the Warp object and console, the handling of exceptions, and verifies that the optimal solution is being employeed -- O(logn). More information on the tests can be seen in the documentation of the <a href="src/warp_test.py">warp_tests file</a>. To run these tests, simply cd into the src folder and run the file as a script directly.</p>
+<pre><code class="language-Bash"><div>$ <span class="hljs-built_in">cd</span> src
+$ python warp_test.py
+</div></code></pre>
+<h1 id="3-verbose-explanation-of-code-to-make-grading-easier">3. Verbose Explanation of Code (To Make 'Grading' Easier)</h1>
+<p>What do I consider quality production-level code? Well, to be concise, code is quality if it answers these questions with a definitive 'yes'.</p>
+<ol>
+<li>Does it accomplish the assigned goal / task?</li>
+<li>Could you (a developer) confidently make edits to or use this code?</li>
+</ol>
+<p>A bit more verbosely, this section explains what I believe to be the 5 fundamental characteristics of quality code and how I accomplished them in this project</p>
+<p>3.1) Object Oriented and Functional Programming<br>
+3.2) Comprehensive Documentation<br>
+3.3) Unit Test Design<br>
+3.4) Optimization<br>
+3.5) Readible Code</p>
+<h2 id="31-object-oriented-and-functional-programming-oofp">3.1. Object Oriented and Functional Programming (OOFP)</h2>
+<p>The <a href="main.py">Main</a> script employees OOFP. <a href="main.py">Main's</a> simplicity allows theoretical future developers to easily debug and edit my code. To demonstrate, here's the entirety of <a href="main.py">Main</a>:</p>
+<pre><code class="language-Python"><div><span class="hljs-keyword">from</span> src.utils <span class="hljs-keyword">import</span> console
+<span class="hljs-keyword">from</span> src.warp <span class="hljs-keyword">import</span> Warp
+
+warp = Warp()
+<span class="hljs-keyword">while</span> <span class="hljs-literal">True</span>:
+    output = console(warp)
+    <span class="hljs-keyword">if</span> output != <span class="hljs-literal">None</span>:
+        print(output)
+</div></code></pre>
+<p>OOFP (in the scope of this project) offers two main advantages: readibility and scalability / modularity.</p>
+<h3 id="311-readibility">3.1.1. <strong>readibility</strong></h3>
+<p>The concise format of <a href="main.py">Main</a> allows an outside developer to quickly understand its high level functionalitality. As an exercise, skim over the above code, and write out what the code is doing (in pseudocode) For me, I'd say</p>
+<pre><code>1) the warp object is initialized
+2) the console prompts the user for an input
+3) the console does something to the warp object with that input
+4) if the output from the console is not None then it prints that output
+5) back to 2 and repeat indefinitely
+</code></pre>
+<p>In the context of the problem statement, this parallels its high-level purpose. If the code did not parallel the problem statement, then it would be clear that something wrong. In addition to high-level readability, Other methods of explanation are allowed by OOFP; which, are discussed in section 3.5.</p>
+<h3 id="312-scalability--modularity">3.1.2. <strong>Scalability / Modularity</strong></h3>
+<p>This method was designed with Ableton's software in mind. I have worked with music software occasionally in the past, and I know that they often come with a host of modules. As I see it, the main value proposition of music software is the quality and quantity of these modules. e.g. If an artist wants to interface their tap-deck with the software, is there an efficient and easy to use controller?</p>
+<p>In the case of the warp object, it could be used in a situation where someone wants to build a unique sound. Finally, due to its simple methods of interfacing, it can be used in an emergent way and developed into something significantly more complex.</p>
+<h2 id="32-comprehensive-documentation">3.2. Comprehensive Documentation</h2>
+<p>The documentation of the <a href="src/utils.py">console function</a> and <a href="src/warp.py">warp class</a> have extensive explanations in terms of usage, theory, and optimization. This is done to simplify editing and for use in the scope of a larger documentation API.</p>
+<p>For example, here's the documentation for the <code>__binary_search__</code> <a href="src/warp.py">Warp object</a> method:</p>
+<pre><code class="language-Python"><div>    <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__binary_search__</span><span class="hljs-params">(self, input_ref, beat_or_time)</span>:</span>
+        <span class="hljs-string">"""
+        # Purpose
+        Improves the efficiency of finding the relevant region
+        for a given input; specifically designed for use with
+        the s2b and b2s functionalities.
+
+        # Theory
+        For the purpose of demonstration of understanding (this is
+        for a technical interview), this method only uses two ints 
+        that actually change; it also avoids using recursion. This 
+        is done in the interest of maximizing performance. If any other 
+        method (to my knowledge) is used here, either the method is
+        greatly bottlenecked by it (recursion) or the method does
+        not scale as expected. The average performance decrease of 
+        calling the s2b function:
+        """</span> ...
+</div></code></pre>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable rowspacing="0.24999999999999992em" columnalign="right left" columnspacing="0em"><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mfrac><msub><mi>p</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><msub><mi>p</mi><mi>t</mi></msub></mfrac></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mtext> </mtext><mo>=</mo><msup><mrow><mo fence="true">(</mo><mfrac><msub><mi>n</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><msub><mi>n</mi><mi>t</mi></msub></mfrac><mo fence="true">)</mo></mrow><mn>0.1</mn></msup></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow></mrow></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mtext>and</mtext></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><msub><mi>p</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mtext> </mtext><mo>=</mo><mn>360</mn><msup><mrow><mo fence="true">(</mo><mfrac><msub><mi>n</mi><mrow><mi>t</mi><mo>+</mo><mn>1</mn></mrow></msub><msub><mi>n</mi><mi>t</mi></msub></mfrac><mo fence="true">)</mo></mrow><mn>0.1</mn></msup><mo stretchy="false">[</mo><mi>k</mi><mi>h</mi><mi>z</mi><mo stretchy="false">]</mo></mrow></mstyle></mtd></mtr><mtr><mtd><mstyle scriptlevel="0" displaystyle="true"><mtext>Note: the exact</mtext></mstyle></mtd><mtd><mstyle scriptlevel="0" displaystyle="true"><mrow><mrow></mrow><mtext> frequency is device specific</mtext></mrow></mstyle></mtd></mtr></mtable><annotation encoding="application/x-tex">\begin{aligned}
+    \frac{p_{t + 1}}{p_{t}} &amp;~= \left(\frac{n_{t+1}}{n_{t}}\right)^{0.1}\\
+    &amp;\text{and}\\
+    p_{t+1} &amp;~= 360 \left(\frac{n_{t+1}}{n_{t}}\right)^{0.1} [khz]\\
+    \text{Note: the exact} &amp; \text{  frequency is device specific}
+\end{aligned}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:8.808076000000003em;vertical-align:-4.154038000000002em;"></span><span class="mord"><span class="mtable"><span class="col-align-r"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.654038000000001em;"><span style="top:-6.654038000000002em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1075599999999999em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804400000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span><span style="top:-4.564008em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"></span></span><span style="top:-2.2499999999999996em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span><span style="top:-0.1599699999999986em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"><span class="mord text"><span class="mord">Note: the exact</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:4.154038000000002em;"><span></span></span></span></span></span><span class="col-align-l"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:4.654038000000001em;"><span style="top:-6.654038000000002em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace nobreak"> </span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1075599999999999em;"><span style="top:-2.3139999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8360000000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.6540080000000001em;"><span style="top:-3.9029000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">0</span><span class="mord mtight">.</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span></span></span><span style="top:-4.564008em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"><span class="mord"></span><span class="mord text"><span class="mord">and</span></span></span></span><span style="top:-2.2499999999999996em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"><span class="mord"></span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mspace nobreak"> </span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord">3</span><span class="mord">6</span><span class="mord">0</span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1075599999999999em;"><span style="top:-2.3139999999999996em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2805559999999999em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathdefault">n</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.301108em;"><span style="top:-2.5500000000000003em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathdefault mtight">t</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.208331em;"><span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8360000000000001em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.6540080000000001em;"><span style="top:-3.9029000000000003em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">0</span><span class="mord mtight">.</span><span class="mord mtight">1</span></span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.16666666666666666em;"></span><span class="mopen">[</span><span class="mord mathdefault" style="margin-right:0.03148em;">k</span><span class="mord mathdefault">h</span><span class="mord mathdefault" style="margin-right:0.04398em;">z</span><span class="mclose">]</span></span></span><span style="top:-0.1599699999999986em;"><span class="pstrut" style="height:3.654008em;"></span><span class="mord"><span class="mord"></span><span class="mord text"><span class="mord"> frequency is device specific</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:4.154038000000002em;"><span></span></span></span></span></span></span></span></span></span></span></span></p>
+<pre><code class="language-Python"><div>        ... <span class="hljs-string">"""
+        where p_(t+1) is the maximum frequency of calling s2b or b2s
+        at the step (t + 1), and n represents the number of markers in a given 
+        system.
+        
+        ## parameters
+        :param input_ref float: the input reference value to
+                                isolate region w.r.t all regions
+        :param beat_or_time int: either 0 (beat) or 1 (time)
+        :return int: the relevant region of the input
+        """</span>
+</div></code></pre>
+<h2 id="33-unit-test-design">3.3. Unit Test Design</h2>
+<p>See the definition of the <a href="src/warp_test.py">tests</a> to see the specifics of which functionalities, exceptions, and performances are tested. To summarize, the tests were developed alongside the code; they properly include any bugs that were encountered during development. Comprehensive tests are important because they allow further development, while also making sure that old bug fixes and functionality are reliably maintained.</p>
+<h2 id="34-optimization">3.4. Optimization</h2>
+<p>Optimization is important.</p>
+<p>I assume the warp module is used in frequency modulation; i.e. digital sound is a series of signal frequencies -- converted into real audio via speakers. According to Google, the typical bit rate is about 44.1khz; which, if the warp module were used in real-time, would require the s2b functionality to access solutions at 44.1khz.</p>
+<p>As outlined in section 3.2, front-loading computation and binary search were used. The sorted reference lists is built using binary search in O(nlog(n)), and the s2b and b2s methods access solutions in O(log(n)). The optimal solution easily achieves the 44.1khz requirements. For example, my program is able to access solutions at a theoretical frequency of 160khz while there are 260 thousand markers.</p>
+<h2 id="35-readable-code">3.5. Readable Code</h2>
+<p>All of the functions and variables are named with readability in mind. For example, from the <a href="src/warp.py">warp object</a>,</p>
+<pre><code class="language-python"><div><span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__update_regions__</span><span class="hljs-params">(self)</span>:</span>
+        <span class="hljs-string">"""
+        **ignoring docstring**
+        """</span>
+        <span class="hljs-comment"># step through each available region</span>
+        self.regions = []
+        <span class="hljs-keyword">for</span> count <span class="hljs-keyword">in</span> range(len(self.markers)<span class="hljs-number">-1</span>):
+            left = self.markers[count]
+            right = self.markers[count+<span class="hljs-number">1</span>]
+            a, b, c, d = left[<span class="hljs-number">0</span>], right[<span class="hljs-number">0</span>], left[<span class="hljs-number">1</span>], right[<span class="hljs-number">1</span>]
+            tempo = self.get_tempo(a, b, c, d)
+            self.regions.append((a, c, tempo))
+        
+        <span class="hljs-comment"># append end region</span>
+        last_marker = self.markers[<span class="hljs-number">-1</span>]
+        self.regions.append((last_marker[<span class="hljs-number">0</span>], last_marker[<span class="hljs-number">1</span>], self.end_tempo))
+</div></code></pre>
+<p>This similarly can be read as</p>
+<pre><code>for each convolution of length 2:
+    collect the marker to the left
+    collect the marker to the right
+    use these markers to calculate the tempo
+    save the required values in the regions variable
+
+now do the same for the end region
+</code></pre>
+<hr>
+<p>Note: this method was reworked for purposes of optimization; because of this, the <code>__update_regions__</code> method has a significantly more difficult to undersatnd structure. But I maintained readibility via comments and variable names.</p>
+<hr>
+<p>In addition to high-level readability, I attempt to maintain a constant learning curve for each set of code. I do this by implementing a complementary hierarchical structure of complexity and focus...</p>
+<p>That is, see the 'levels' of <a href="main.py">Main</a> -&gt; <a href="src/utils.py">console</a> -&gt; <a href="src/warp.py">Warp</a> -- where <a href="main.py">Main</a> is high-level, and <a href="src/warp.py">Warp</a> is low-level. The complexity of the code / documentation increases as the level decreases. However, the scope narrows in a complementary way. This creates a hierarchy of sorts; with each step, the actual problem becomes easier to understand, but the solution less so. A proper balance of these two properties of readability allows for a (ideally) constant learning curve for each subsequent step.</p>
+<p>To demonstrate this kind of hierarchical complexity in action, let's take a look at the <a href="src/warp.py">warp object's</a> class method <code>__get_tempo__</code>:</p>
+<pre><code class="language-Python"><div> <span class="hljs-function"><span class="hljs-keyword">def</span> <span class="hljs-title">__get_tempo__</span><span class="hljs-params">(self, a, b, c, d)</span>:</span>
+        <span class="hljs-string">r"""
+        Get the tempo provided the edge points a, b, c, d
+
+        beat line    ------*(a)-----*(point of interest)----------*(b)-------
+                            |       region of interest             \ 
+                            | tempo = (b-a)/(d-c) [beats / second]  \ 
+        seconds line ------*(c)--------------------------------------*(d)---- 
+
+        :param a float: beat intercept left of the point of interest
+        :param b float: beat intercept right of the point of interest
+        :param c float: seconds intercept left of the point of interest
+        :param d float: seconds intercept right of the point of interest
+        :return float: tempo [beats per second]
+        """</span>
+        <span class="hljs-keyword">return</span> (b-a)/(d-c)
+</div></code></pre>
+<p>You might be thinking to yourself,</p>
+<blockquote>
+<p>Well, Alita; this seems like a waste of valuable memory. It's just doing a simple algebraic expression! Which, could very easily have just been done inline.</p>
+</blockquote>
+<p><code>__get_tempo__</code> was obfuscated because the solution is non-obvious. Understanding the solution would require that you'd realize the purposes of a, b, c, and d; and that you know what 'tempo' means in this context. A reader might say,</p>
+<blockquote>
+<p>well what does this tempo define? As in the tempo of the whole piece? Or just any part of the piece?</p>
+</blockquote>
+<p>The docstring shows how the tempo is the beats per second of a region defined by its left and right markers. i.e. delta beats divided by delta time [beats per second]. Devoid of context, however, this simple equation is confusing. So I split it off from the main function and explained it clearly.</p>
+<p>This allows for other developers to double-check my work. e.g. let's say that I had made the simple error of <code>return (d-c) / (b-a)</code>, instead. My coworker would probably notice that the calculated tempo is the inverse of what it should be and then just make a simple fix in its obvious place which is <code>__get_tempo__</code>.</p>
+<p>However, if it were placed inline, my coworker would first have to find where tempo is being defined (which might be in mulitple places), what and why it's being calculated, and then make a fix. They may even assume the code is just fundamentally flawed and instead opt to start from scratch; which, wastes time and money just because the equation was inverted.</p>
+
+    </body>
+    </html>
